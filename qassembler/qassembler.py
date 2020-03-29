@@ -6,7 +6,7 @@ from flask import Flask
 log = logging.getLogger(__name__)
 
 
-def main():
+def main() -> Flask:
     logging.basicConfig(
         format='[%(asctime)s] [%(process)d] [%(levelname)s] '
                '%(name)s: %(message)s',
