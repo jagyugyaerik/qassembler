@@ -27,7 +27,7 @@ class SgeJobSchema(Schema):
 
 
 class SgeJobResponse(Schema):
-    job_name: fields.Str()
+    job_name = fields.Str()
 
 
 class SgeJobView(SwaggerView):  # type: ignore

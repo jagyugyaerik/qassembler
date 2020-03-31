@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* Add API skeleton
 * Add version handling with pbr
 * Add static code analysis and tox
 * very first commit
