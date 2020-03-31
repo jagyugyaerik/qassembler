@@ -16,7 +16,9 @@ disable=missing-docstring,fixme,
         inconsistent-return-statements,
         no-else-return,
         too-few-public-methods,
-        logging-fstring-interpolation
+        logging-fstring-interpolation,
+        logging-format-interpolation,
+        no-self-use
 
 [FORMAT]
 max-line-length=80

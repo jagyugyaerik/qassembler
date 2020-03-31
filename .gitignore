@@ -130,3 +130,5 @@ dmypy.json
 
 # Pycharm .ide
 .idea/
+
+shared-volume/
