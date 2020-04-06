@@ -1,6 +1,9 @@
+import json
+import logging
 import os
 from typing import List, Dict, NamedTuple
 from datetime import datetime
+import json
 
 from jinja2 import FileSystemLoader, Environment
 
@@ -8,6 +11,8 @@ import qassembler
 from qassembler.config import CONTAINER_SHARED_VOLUME_PATH, OUTPUT_DIR_NAME, \
     ERROR_DIR_NAME, GOLDEN_BINARY_DIR_NAME, GOLDEN_REFERENCES_DIR_NAME, \
     BINARIES_DIR_NAME, REFERENCES_DIR_NAME, WORKING_DIRECTORY_PREFIX
+
+log = logging.getLogger(__name__)
 
 SgeJobParams = NamedTuple('SgeJobParams',
                           [('job_name', str),
@@ -77,3 +82,9 @@ def generate_sge_job_params(pipeline: List[Dict[str, str]]) -> SgeJobParams:
                         binaries_path=binaries_path,
                         reference_path=reference_path,
                         pipeline=pipeline["pipeline"])  # type: ignore
+
+
+def create_param_file(params: SgeJobParams, filename: str) -> None:
+    with open(os.path.join(params.working_directory_path, filename), 'w') as \
+            param_file:
+        param_file.writelines(json.dumps(params._asdict(), indent=4))

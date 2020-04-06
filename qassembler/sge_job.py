@@ -9,7 +9,7 @@ from marshmallow import Schema, fields
 
 from qassembler.utils import render_qsub_template, \
     generate_sge_job_params, create_directory_structure, \
-    create_qsub_job_file
+    create_qsub_job_file, create_param_file
 
 log = logging.getLogger(__name__)
 
@@ -59,6 +59,8 @@ class SgeJobView(SwaggerView):  # type: ignore
                                      'qsub_job.submit')
         create_qsub_job_file(qsub_filename, qsub_job)
         log.info(f'qsub job: {qsub_job}')
+
+        create_param_file(sge_job_params, 'param_file.json')
 
         # shared_volume = {
         #     HOST_SHARED_VOLUME_PATH: {
