@@ -1,29 +1,21 @@
 import logging
-from datetime import datetime
-from typing import NamedTuple
+import os
+from typing import Dict, List
 
 from docker import client
 from flasgger import SwaggerView
 from flask import jsonify, request, make_response
 from marshmallow import Schema, fields
 
-from qassembler.config import HOST_SHARED_VOLUME_PATH, \
-    CONTAINER_SHARED_VOLUME_PATH
+from qassembler.utils import render_qsub_template, \
+    generate_sge_job_params, create_directory_structure, \
+    create_qsub_job_file
 
 log = logging.getLogger(__name__)
 
-SgeJobParams = NamedTuple('SgeJobParams',
-                          [('shell_binary_path', str),
-                           ('output_path', str),
-                           ('error_path', str),
-                           ('working_dir_path', str)])
-
 
 class SgeJobSchema(Schema):
-    shell_binary_path = fields.Str(required=True, default="/bin/bash")
-    output_path = fields.Str()
-    error_path = fields.Str()
-    working_dir_path = fields.Str()
+    pipeline = fields.List(fields.Dict(keys=fields.Str(), values=fields.Str()))
 
 
 class SgeJobResponse(Schema):
@@ -47,30 +39,46 @@ class SgeJobView(SwaggerView):  # type: ignore
         """
         Start a sge job
         """
-        params: SgeJobParams = SgeJobSchema().load(request.json)
-        log.info(f'sge job request: {params}')
+        pipeline: List[Dict[str, str]] = SgeJobSchema().load(request.json)
+        log.info(f'sge job pipeline request: {pipeline}')
 
-        job_name = 'sge-{:%Y%m%d-%H%M%S-%f}'.format(datetime.now())
+        sge_job_params = generate_sge_job_params(pipeline)
+        log.info(f'sge job params: {sge_job_params}')
 
-        shared_volume = {
-            HOST_SHARED_VOLUME_PATH: {
-                'bind': CONTAINER_SHARED_VOLUME_PATH,
-                'mode': 'rw',
-            },
-        }
+        list_of_directories = [sge_job_params.working_directory_path,
+                               sge_job_params.output_path,
+                               sge_job_params.error_path,
+                               sge_job_params.binaries_path,
+                               sge_job_params.reference_path]
+        create_directory_structure(sge_job_params.working_directory_path,
+                                   list_of_directories)
+        log.info(f'The following directories created {list_of_directories}')
 
-        response = self.docker_client.containers.run(
-            image='alpine',
-            name=job_name,
-            volumes=shared_volume,
-            command='sleep 3000'
-        )
-        print(response)
+        qsub_job = render_qsub_template(sge_job_params)
+        qsub_filename = os.path.join(sge_job_params.working_directory_path,
+                                     'qsub_job.submit')
+        create_qsub_job_file(qsub_filename, qsub_job)
+        log.info(f'qsub job: {qsub_job}')
+
+        # shared_volume = {
+        #     HOST_SHARED_VOLUME_PATH: {
+        #         'bind': CONTAINER_SHARED_VOLUME_PATH,
+        #         'mode': 'rw',
+        #     },
+        # }
+
+        # response = self.docker_client.containers.run(
+        #     image='alpine',
+        #     name=job_name,
+        #     volumes=shared_volume,
+        #     command='sleep 3'
+        # )
+        # print(response)
 
         return make_response(
             jsonify(
                 {
-                    'job_name': job_name
+                    'job_name': sge_job_params.job_name
                 }
             ),
             201)

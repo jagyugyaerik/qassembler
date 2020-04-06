@@ -1,4 +1,4 @@
-"""Top-level package for Test Execution as a Service."""
+"""Top-level package for QAssembler"""
 
 import pbr.version
 
