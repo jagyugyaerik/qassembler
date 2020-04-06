@@ -1,7 +1,9 @@
 CHANGES
 =======
 
-* Generating qsub files
+* Run docker container with image qommunicator
+* Add paramter file
+* Generate qsub files
 * FIX tox's issues
 * Add API skeleton
 * Add version handling with pbr

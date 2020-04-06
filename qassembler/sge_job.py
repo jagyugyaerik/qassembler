@@ -1,15 +1,15 @@
 import logging
 import os
-from typing import Dict, List
+from typing import Dict, List, Any
 
 from docker import client
 from flasgger import SwaggerView
 from flask import jsonify, request, make_response
 from marshmallow import Schema, fields
 
-from qassembler.config import HOST_SHARED_VOLUME_PATH, \
-    CONTAINER_SHARED_VOLUME_PATH, HOST_SSH_VOLUME_PATH, \
-    CONTAINER_SSH_VOLUME_PATH, CONTAINER_PARAM_FILE_PATH
+from qassembler.config import CONTAINER_SHARED_VOLUME_PATH, \
+    HOST_SSH_VOLUME_PATH, \
+    CONTAINER_SSH_VOLUME_PATH
 from qassembler.utils import render_qsub_template, \
     generate_sge_job_params, create_directory_structure, \
     create_qsub_job_file, create_param_file
@@ -18,6 +18,7 @@ log = logging.getLogger(__name__)
 
 
 class SgeJobSchema(Schema):
+    input_files = fields.Str(required=True, default='/home')
     pipeline = fields.List(fields.Dict(keys=fields.Str(), values=fields.Str()))
 
 
@@ -42,10 +43,11 @@ class SgeJobView(SwaggerView):  # type: ignore
         """
         Start a sge job
         """
-        pipeline: List[Dict[str, str]] = SgeJobSchema().load(request.json)
-        log.info(f'sge job pipeline request: {pipeline}')
+        loaded_schema: Dict[str, Any] = SgeJobSchema().load(request.json)
+        pipeline: List[Dict[str, str]] = loaded_schema['pipeline']
+        input_path: str = loaded_schema['input_files']
 
-        sge_job_params = generate_sge_job_params(pipeline)
+        sge_job_params = generate_sge_job_params(pipeline, input_path)
         log.info(f'sge job params: {sge_job_params}')
 
         list_of_directories = [sge_job_params.working_directory_path,
@@ -69,15 +71,13 @@ class SgeJobView(SwaggerView):  # type: ignore
             image='qommunicator:latest',
             name=sge_job_params.job_name,
             volumes={
-                HOST_SHARED_VOLUME_PATH: {
-                    'bind': CONTAINER_SHARED_VOLUME_PATH,
+                sge_job_params.working_directory_path: {
+                    'bind': os.path.join(CONTAINER_SHARED_VOLUME_PATH,
+                                         sge_job_params.job_name),
                     'mode': 'rw'},
                 HOST_SSH_VOLUME_PATH: {
                     'bind': CONTAINER_SSH_VOLUME_PATH,
-                    'mode': 'ro'},
-                sge_job_params.param_file_path: {
-                    'bind': CONTAINER_PARAM_FILE_PATH,
-                    'mode': 'ro'},
+                    'mode': 'ro'}
             },
             links={'gridengine':None},
             environment={

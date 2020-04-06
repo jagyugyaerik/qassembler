@@ -27,7 +27,8 @@ SgeJobParams = NamedTuple('SgeJobParams',
                            ('golden_reference_path', str),
                            ('binaries_path', str),
                            ('reference_path', str),
-                           {'param_file_path', str},
+                           ('input_path', str),
+                           ('param_file_path', str),
                            ('pipeline', List[Dict[str, str]])])
 
 
@@ -60,7 +61,8 @@ def create_directory_structure(location: str,
             directories]
 
 
-def generate_sge_job_params(pipeline: List[Dict[str, str]]) -> SgeJobParams:
+def generate_sge_job_params(pipeline: List[Dict[str, str]],
+                            input_path: str) -> SgeJobParams:
     job_name = generate_job_name()
     working_directory_path = os.path.join(HOST_SHARED_VOLUME_PATH,
                                           WORKING_DIRECTORY_PREFIX, job_name)
@@ -84,8 +86,9 @@ def generate_sge_job_params(pipeline: List[Dict[str, str]]) -> SgeJobParams:
                         golden_reference_path=golden_reference_path,
                         binaries_path=binaries_path,
                         reference_path=reference_path,
+                        input_path=input_path,
                         param_file_path=param_file_path,
-                        pipeline=pipeline["pipeline"])  # type: ignore
+                        pipeline=pipeline)  # type: ignore
 
 
 def create_param_file(params: SgeJobParams) -> None:
