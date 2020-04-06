@@ -12,6 +12,6 @@
 
 {%- for command in params.pipeline %}
 {%- for key in command.keys() %}
-{{ command[key] }}
+{{ key }} {{ command[key] }}
 {%- endfor %}
 {%- endfor %}

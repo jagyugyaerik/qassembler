@@ -9,7 +9,7 @@ from marshmallow import Schema, fields
 
 from qassembler.config import CONTAINER_SHARED_VOLUME_PATH, \
     HOST_SSH_VOLUME_PATH, \
-    CONTAINER_SSH_VOLUME_PATH
+    CONTAINER_SSH_VOLUME_PATH, CONTAINER_PARAM_FILE_PATH
 from qassembler.utils import render_qsub_template, \
     generate_sge_job_params, create_directory_structure, \
     create_qsub_job_file, create_param_file
@@ -77,7 +77,10 @@ class SgeJobView(SwaggerView):  # type: ignore
                     'mode': 'rw'},
                 HOST_SSH_VOLUME_PATH: {
                     'bind': CONTAINER_SSH_VOLUME_PATH,
-                    'mode': 'ro'}
+                    'mode': 'ro'},
+                sge_job_params.param_file_path: {
+                    'bind': CONTAINER_PARAM_FILE_PATH,
+                    'mode': 'ro'},
             },
             links={'gridengine':None},
             environment={
