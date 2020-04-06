@@ -10,7 +10,8 @@ from jinja2 import FileSystemLoader, Environment
 import qassembler
 from qassembler.config import CONTAINER_SHARED_VOLUME_PATH, OUTPUT_DIR_NAME, \
     ERROR_DIR_NAME, GOLDEN_BINARY_DIR_NAME, GOLDEN_REFERENCES_DIR_NAME, \
-    BINARIES_DIR_NAME, REFERENCES_DIR_NAME, WORKING_DIRECTORY_PREFIX
+    BINARIES_DIR_NAME, REFERENCES_DIR_NAME, WORKING_DIRECTORY_PREFIX, \
+    HOST_SHARED_VOLUME_PATH
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ SgeJobParams = NamedTuple('SgeJobParams',
                            ('golden_reference_path', str),
                            ('binaries_path', str),
                            ('reference_path', str),
+                           {'param_file_path', str},
                            ('pipeline', List[Dict[str, str]])])
 
 
@@ -60,16 +62,17 @@ def create_directory_structure(location: str,
 
 def generate_sge_job_params(pipeline: List[Dict[str, str]]) -> SgeJobParams:
     job_name = generate_job_name()
-    working_directory_path = os.path.join(CONTAINER_SHARED_VOLUME_PATH,
+    working_directory_path = os.path.join(HOST_SHARED_VOLUME_PATH,
                                           WORKING_DIRECTORY_PREFIX, job_name)
     output_path = os.path.join(working_directory_path, OUTPUT_DIR_NAME)
     error_path = os.path.join(working_directory_path, ERROR_DIR_NAME)
-    golden_binary_path = os.path.join(CONTAINER_SHARED_VOLUME_PATH,
+    golden_binary_path = os.path.join(HOST_SHARED_VOLUME_PATH,
                                       GOLDEN_BINARY_DIR_NAME)
-    golden_reference_path = os.path.join(CONTAINER_SHARED_VOLUME_PATH,
+    golden_reference_path = os.path.join(HOST_SHARED_VOLUME_PATH,
                                          GOLDEN_REFERENCES_DIR_NAME)
     binaries_path = os.path.join(working_directory_path, BINARIES_DIR_NAME)
     reference_path = os.path.join(working_directory_path, REFERENCES_DIR_NAME)
+    param_file_path = os.path.join(working_directory_path, 'param_file.json')
     return SgeJobParams(job_name=job_name,
                         shell_binary_path='/bin/bash',
                         working_directory_path=working_directory_path,
@@ -81,10 +84,11 @@ def generate_sge_job_params(pipeline: List[Dict[str, str]]) -> SgeJobParams:
                         golden_reference_path=golden_reference_path,
                         binaries_path=binaries_path,
                         reference_path=reference_path,
+                        param_file_path=param_file_path,
                         pipeline=pipeline["pipeline"])  # type: ignore
 
 
-def create_param_file(params: SgeJobParams, filename: str) -> None:
-    with open(os.path.join(params.working_directory_path, filename), 'w') as \
+def create_param_file(params: SgeJobParams) -> None:
+    with open(os.path.join(params.param_file_path), 'w') as \
             param_file:
         param_file.writelines(json.dumps(params._asdict(), indent=4))

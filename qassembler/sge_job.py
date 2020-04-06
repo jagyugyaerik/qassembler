@@ -7,6 +7,9 @@ from flasgger import SwaggerView
 from flask import jsonify, request, make_response
 from marshmallow import Schema, fields
 
+from qassembler.config import HOST_SHARED_VOLUME_PATH, \
+    CONTAINER_SHARED_VOLUME_PATH, HOST_SSH_VOLUME_PATH, \
+    CONTAINER_SSH_VOLUME_PATH, CONTAINER_PARAM_FILE_PATH
 from qassembler.utils import render_qsub_template, \
     generate_sge_job_params, create_directory_structure, \
     create_qsub_job_file, create_param_file
@@ -60,22 +63,32 @@ class SgeJobView(SwaggerView):  # type: ignore
         create_qsub_job_file(qsub_filename, qsub_job)
         log.info(f'qsub job: {qsub_job}')
 
-        create_param_file(sge_job_params, 'param_file.json')
+        create_param_file(sge_job_params)
 
-        # shared_volume = {
-        #     HOST_SHARED_VOLUME_PATH: {
-        #         'bind': CONTAINER_SHARED_VOLUME_PATH,
-        #         'mode': 'rw',
-        #     },
-        # }
-
-        # response = self.docker_client.containers.run(
-        #     image='alpine',
-        #     name=job_name,
-        #     volumes=shared_volume,
-        #     command='sleep 3'
-        # )
-        # print(response)
+        response = self.docker_client.containers.run(
+            image='qommunicator:latest',
+            name=sge_job_params.job_name,
+            volumes={
+                HOST_SHARED_VOLUME_PATH: {
+                    'bind': CONTAINER_SHARED_VOLUME_PATH,
+                    'mode': 'rw'},
+                HOST_SSH_VOLUME_PATH: {
+                    'bind': CONTAINER_SSH_VOLUME_PATH,
+                    'mode': 'ro'},
+                sge_job_params.param_file_path: {
+                    'bind': CONTAINER_PARAM_FILE_PATH,
+                    'mode': 'ro'},
+            },
+            links={'gridengine':None},
+            environment={
+                "GRIDENGINE_USER": 'root',
+                "GRIDENGINE_SSH_KEY_PATH": os.path.join(
+                    CONTAINER_SHARED_VOLUME_PATH, '.ssh', 'sge_rsa'),
+                "PARAM_FILE_PATH": sge_job_params.param_file_path
+            },
+            detach=True
+        )
+        log.info(response)
 
         return make_response(
             jsonify(
