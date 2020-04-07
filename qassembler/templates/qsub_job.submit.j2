@@ -1,13 +1,12 @@
 # Generated with Jinja2
 #!/bin/bash
 
-#$ -S {{ params.shell_version }}
+#$ -S {{ params.shell_binary_path }}
 #$ -N {{ params.job_name }}
 #$ -o {{ params.output_path }}
 #$ -e {{ params.error_path }}
 #$ -wd {{ params.working_directory_path }}
 #$ -V
-#$ -pe threads {{ params.threads }}
 #$ -q {{ params.que }}
 
 {%- for command in params.pipeline %}
