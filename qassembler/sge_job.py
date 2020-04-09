@@ -67,6 +67,9 @@ class SgeJobView(SwaggerView):  # type: ignore
 
         create_param_file(sge_job_params)
 
+        container_path = os.path.join(CONTAINER_SHARED_VOLUME_PATH,
+                                      sge_job_params.job_name)
+
         response = self.docker_client.containers.run(
             image='qommunicator:latest',
             name=sge_job_params.job_name,
@@ -78,8 +81,13 @@ class SgeJobView(SwaggerView):  # type: ignore
                 HOST_SSH_VOLUME_PATH: {
                     'bind': CONTAINER_SSH_VOLUME_PATH,
                     'mode': 'ro'},
-                sge_job_params.param_file_path: {
-                    'bind': CONTAINER_PARAM_FILE_PATH,
+                sge_job_params.golden_binary_path: {
+                    'bind': os.path.join(CONTAINER_SHARED_VOLUME_PATH,
+                                         'golden-binary'),
+                    'mode': 'ro'},
+                sge_job_params.golden_reference_path: {
+                    'bind': os.path.join(CONTAINER_SHARED_VOLUME_PATH,
+                                         'golden-reference'),
                     'mode': 'ro'},
             },
             links={'gridengine':None},
@@ -87,7 +95,8 @@ class SgeJobView(SwaggerView):  # type: ignore
                 "GRIDENGINE_USER": 'root',
                 "GRIDENGINE_SSH_KEY_PATH": os.path.join(
                     CONTAINER_SHARED_VOLUME_PATH, '.ssh', 'sge_rsa'),
-                "PARAM_FILE_PATH": sge_job_params.param_file_path
+                "PARAM_FILE_PATH": os.path.join(container_path,
+                                                'param_file.json')
             },
             detach=True
         )
