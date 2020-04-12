@@ -10,7 +10,8 @@ from marshmallow import Schema, fields
 from qassembler.config import CONTAINER_SHARED_VOLUME_PATH, \
     HOST_SSH_VOLUME_PATH, \
     CONTAINER_SSH_VOLUME_PATH, GOLDEN_BINARY_DIR_NAME, \
-    GOLDEN_REFERENCES_DIR_NAME
+    GOLDEN_REFERENCES_DIR_NAME, PROJECT_DIRECTORIES, HOST_SHARED_VOLUME_PATH, \
+    PROJECT_PREFIX
 from qassembler.utils import generate_sge_job_params, \
     create_directory_structure, \
     create_param_file
@@ -50,23 +51,22 @@ class SgeJobView(SwaggerView):  # type: ignore
 
         sge_job_params = generate_sge_job_params(pipeline, input_path)
         log.info(f'sge job params: {sge_job_params}')
+        host_working_directory = os.path.join(HOST_SHARED_VOLUME_PATH,
+                                              PROJECT_PREFIX,
+                                              sge_job_params.job_name)
+        log.info(f'Host\'s working directory is {host_working_directory}')
+        create_directory_structure(host_working_directory,
+                                   PROJECT_DIRECTORIES)
+        log.info(f'The follwing directories {PROJECT_DIRECTORIES}'
+                 f' created in project {sge_job_params.job_name}')
 
-        list_of_directories = [sge_job_params.working_directory_path,
-                               sge_job_params.output_path,
-                               sge_job_params.error_path,
-                               sge_job_params.binaries_path,
-                               sge_job_params.reference_path]
-        create_directory_structure(sge_job_params.working_directory_path,
-                                   list_of_directories)
-        log.info(f'The following directories created {list_of_directories}')
-
-        create_param_file(sge_job_params)
+        create_param_file(host_working_directory, sge_job_params)
 
         response = self.docker_client.containers.run(
             image='qommunicator:latest',
             name=sge_job_params.job_name,
             volumes={
-                sge_job_params.working_directory_path: {
+                host_working_directory: {
                     'bind': os.path.join(CONTAINER_SHARED_VOLUME_PATH,
                                          sge_job_params.job_name),
                     'mode': 'rw'},

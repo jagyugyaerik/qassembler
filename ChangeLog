@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+* Remove qsub file generation
+* FIX minor path issue
+* Add binary to the command
+* Refactor template generaton
+* Refactor container parameters
 * Run docker container with image qommunicator
 * Add paramter file
 * Generate qsub files
