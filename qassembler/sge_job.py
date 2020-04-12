@@ -9,10 +9,11 @@ from marshmallow import Schema, fields
 
 from qassembler.config import CONTAINER_SHARED_VOLUME_PATH, \
     HOST_SSH_VOLUME_PATH, \
-    CONTAINER_SSH_VOLUME_PATH, CONTAINER_PARAM_FILE_PATH
-from qassembler.utils import render_qsub_template, \
-    generate_sge_job_params, create_directory_structure, \
-    create_qsub_job_file, create_param_file
+    CONTAINER_SSH_VOLUME_PATH, GOLDEN_BINARY_DIR_NAME, \
+    GOLDEN_REFERENCES_DIR_NAME
+from qassembler.utils import generate_sge_job_params, \
+    create_directory_structure, \
+    create_param_file
 
 log = logging.getLogger(__name__)
 
@@ -59,16 +60,7 @@ class SgeJobView(SwaggerView):  # type: ignore
                                    list_of_directories)
         log.info(f'The following directories created {list_of_directories}')
 
-        qsub_job = render_qsub_template(sge_job_params)
-        qsub_filename = os.path.join(sge_job_params.working_directory_path,
-                                     'qsub_job.submit')
-        create_qsub_job_file(qsub_filename, qsub_job)
-        log.info(f'qsub job: {qsub_job}')
-
         create_param_file(sge_job_params)
-
-        container_path = os.path.join(CONTAINER_SHARED_VOLUME_PATH,
-                                      sge_job_params.job_name)
 
         response = self.docker_client.containers.run(
             image='qommunicator:latest',
@@ -83,11 +75,11 @@ class SgeJobView(SwaggerView):  # type: ignore
                     'mode': 'ro'},
                 sge_job_params.golden_binary_path: {
                     'bind': os.path.join(CONTAINER_SHARED_VOLUME_PATH,
-                                         'golden-binary'),
+                                         GOLDEN_BINARY_DIR_NAME),
                     'mode': 'ro'},
                 sge_job_params.golden_reference_path: {
                     'bind': os.path.join(CONTAINER_SHARED_VOLUME_PATH,
-                                         'golden-reference'),
+                                         GOLDEN_REFERENCES_DIR_NAME),
                     'mode': 'ro'},
             },
             links={'gridengine':None},
@@ -95,7 +87,8 @@ class SgeJobView(SwaggerView):  # type: ignore
                 "GRIDENGINE_USER": 'root',
                 "GRIDENGINE_SSH_KEY_PATH": os.path.join(
                     CONTAINER_SHARED_VOLUME_PATH, '.ssh', 'sge_rsa'),
-                "PARAM_FILE_PATH": os.path.join(container_path,
+                "PARAM_FILE_PATH": os.path.join(CONTAINER_SHARED_VOLUME_PATH,
+                                                sge_job_params.job_name,
                                                 'param_file.json')
             },
             detach=True

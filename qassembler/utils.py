@@ -1,14 +1,11 @@
+import logging
 import json
 import logging
 import os
-from typing import List, Dict, NamedTuple
 from datetime import datetime
-import json
+from typing import List, Dict, NamedTuple
 
-from jinja2 import FileSystemLoader, Environment
-
-import qassembler
-from qassembler.config import CONTAINER_SHARED_VOLUME_PATH, OUTPUT_DIR_NAME, \
+from qassembler.config import OUTPUT_DIR_NAME, \
     ERROR_DIR_NAME, GOLDEN_BINARY_DIR_NAME, GOLDEN_REFERENCES_DIR_NAME, \
     BINARIES_DIR_NAME, REFERENCES_DIR_NAME, WORKING_DIRECTORY_PREFIX, \
     HOST_SHARED_VOLUME_PATH
@@ -34,23 +31,6 @@ SgeJobParams = NamedTuple('SgeJobParams',
 
 def generate_job_name(prefix: str = 'sge') -> str:
     return '{}-{:%Y%m%d-%H%M%S-%f}'.format(prefix, datetime.now())
-
-
-def render_qsub_template(params: SgeJobParams) -> str:
-    # FIXME find a better way to get the package absolute path
-    package_path = qassembler.__path__[0]  # type: ignore
-    templates_folder = os.path.join(package_path, 'templates')
-    file_loader = FileSystemLoader(searchpath=templates_folder)
-    env = Environment(loader=file_loader)
-
-    template = env.get_template('qsub_job.submit.j2')
-
-    return template.render(params=params)
-
-
-def create_qsub_job_file(filename: str, qsub_job: str) -> None:
-    with open(filename, 'w') as qsub_file:
-        qsub_file.writelines(qsub_job)
 
 
 def create_directory_structure(location: str,
