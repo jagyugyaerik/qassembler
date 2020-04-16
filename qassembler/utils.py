@@ -6,7 +6,7 @@ from typing import List, Dict, NamedTuple
 
 from qassembler.config import GOLDEN_BINARY_DIR_NAME, \
     GOLDEN_REFERENCES_DIR_NAME, \
-    HOST_SHARED_VOLUME_PATH
+    SHARED_VOLUME_PATH
 
 SgeJobParams = NamedTuple('SgeJobParams',
                           [('job_name', str),
@@ -42,9 +42,9 @@ def create_directory_structure(location: str,
 def generate_sge_job_params(pipeline: List[Dict[str, str]],
                             input_path: str) -> SgeJobParams:
     job_name = generate_job_name()
-    golden_binary_path = os.path.join(HOST_SHARED_VOLUME_PATH,
+    golden_binary_path = os.path.join(SHARED_VOLUME_PATH,
                                       GOLDEN_BINARY_DIR_NAME)
-    golden_reference_path = os.path.join(HOST_SHARED_VOLUME_PATH,
+    golden_reference_path = os.path.join(SHARED_VOLUME_PATH,
                                          GOLDEN_REFERENCES_DIR_NAME)
     return SgeJobParams(job_name=job_name,
                         shell_binary_path='/bin/bash',
