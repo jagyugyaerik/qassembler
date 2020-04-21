@@ -10,6 +10,7 @@ from flasgger import Swagger, LazyJSONEncoder
 
 from qassembler.config import QASSEMBLER_VERSION
 from qassembler.sge_job import SgeJobView
+from qassembler.job_status import JobStatusView
 
 log = logging.getLogger(__name__)
 
@@ -53,6 +54,9 @@ def create_app_routes(app: Flask, docker_client: client) -> None:
     app.add_url_rule('/sge_job',
                      view_func=SgeJobView.as_view('sge_job', docker_client),
                      methods=['POST'])
+    app.add_url_rule('/job_status/<job_name>',
+                     view_func=JobStatusView.as_view('job_status'),
+                     methods=['GET'])
     app.register_error_handler(ValidationError, handle_validation_error)
     app.register_error_handler(ValueError, handle_value_error)
 
