@@ -8,7 +8,7 @@ from werkzeug.wrappers import Response
 from marshmallow.exceptions import ValidationError
 from flasgger import Swagger, LazyJSONEncoder
 
-from qassembler.config import QASSEMBLER_VERSION
+from qassembler.config import QASSEMBLER_VERSION, DATE_FMT
 from qassembler.sge_job import SgeJobView
 from qassembler.job_status import JobStatusView
 
@@ -65,7 +65,7 @@ def main() -> Flask:
     logging.basicConfig(
         format='[%(asctime)s] [%(process)d] [%(levelname)s] '
                '%(name)s: %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S %z',
+        datefmt=DATE_FMT,
         level=logging.DEBUG)
 
     log.info(f"Starting qassembler {QASSEMBLER_VERSION}")

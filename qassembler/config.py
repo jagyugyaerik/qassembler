@@ -1,6 +1,7 @@
 from . import __version__
 
 QASSEMBLER_VERSION = __version__
+DATE_FMT = '%Y-%m-%d %H:%M:%S %z'
 
 SHARED_VOLUME_PATH = '/shared-volume'
 SSH_VOLUME_PATH = '/ssh-volume'

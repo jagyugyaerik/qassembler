@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 class JobStatus(Enum):
     NOT_FOUND = 'job has not been found'
     PROJECT_CREATED = 'project has been created'
+    DOCKER_STARTED = 'docker container started'
     PENDING = 'pending'
     RUNNING = 'running'
     FINISH = 'finish'

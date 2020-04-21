@@ -12,7 +12,8 @@ from qassembler.config import GOLDEN_BINARY_DIR_NAME, \
     SHARED_VOLUME_PATH, SSH_VOLUME_PATH
 from qassembler.utils import generate_sge_job_params, \
     create_directory_structure, \
-    create_param_file
+    create_param_file, update_job_status
+from qassembler.job_status import JobStatus
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +58,8 @@ class SgeJobView(SwaggerView):  # type: ignore
                                    PROJECT_DIRECTORIES)
         log.info(f'The follwing directories {PROJECT_DIRECTORIES}'
                  f' created in project {sge_job_params.job_name}')
+        update_job_status(working_directory, JobStatus.PROJECT_CREATED)
+        log.info(f'Update Job status to {JobStatus.PROJECT_CREATED}')
 
         create_param_file(working_directory, sge_job_params)
 
@@ -94,6 +97,8 @@ class SgeJobView(SwaggerView):  # type: ignore
             detach=True
         )
         log.info(response)
+        update_job_status(working_directory, JobStatus.DOCKER_STARTED)
+        log.info(f'Job status updated to {JobStatus.DOCKER_STARTED}')
 
         return make_response(
             jsonify(

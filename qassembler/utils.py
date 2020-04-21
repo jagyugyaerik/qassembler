@@ -6,6 +6,7 @@ from typing import List, Dict, NamedTuple
 from qassembler.config import GOLDEN_BINARY_DIR_NAME, \
     GOLDEN_REFERENCES_DIR_NAME, \
     SHARED_VOLUME_PATH
+from qassembler.job_status import JobStatus
 
 SgeJobParams = NamedTuple('SgeJobParams',
                           [('job_name', str),
@@ -58,3 +59,9 @@ def create_param_file(working_directory: str, params: SgeJobParams) -> None:
     with open(os.path.join(working_directory, 'param_file.json'), 'w') as \
             param_file:
         param_file.writelines(json.dumps(params._asdict(), indent=4))
+
+
+def update_job_status(project_path: str, status: JobStatus) -> None:
+    message = {"time": datetime.now(), "status": status}
+    with open(os.path.join(project_path, 'status'), 'a') as status_file:
+        status_file.write(json.dumps(message, default=str))

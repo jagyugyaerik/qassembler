@@ -1,6 +1,7 @@
 CHANGES
 =======
 
+* FIX linting issues
 * Add job\_status endpoint
 * WIP
 * Change directory handling
