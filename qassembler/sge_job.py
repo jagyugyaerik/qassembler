@@ -81,7 +81,7 @@ class SgeJobView(SwaggerView):  # type: ignore
                                          GOLDEN_REFERENCES_DIR_NAME),
                     'mode': 'ro'},
             },
-            links={'gridengine':None},
+            links={'gridengine': None},
             environment={
                 "GRIDENGINE_USER": 'root',
                 "GRIDENGINE_SSH_KEY_PATH": os.path.join('/ssh-volume',

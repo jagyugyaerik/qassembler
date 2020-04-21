@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+* Add job\_status endpoint
+* WIP
+* Change directory handling
 * Remove qsub file generation
 * FIX minor path issue
 * Add binary to the command

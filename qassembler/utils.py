@@ -1,5 +1,4 @@
 import json
-import json
 import os
 from datetime import datetime
 from typing import List, Dict, NamedTuple
@@ -32,11 +31,10 @@ def generate_job_name(prefix: str = 'sge') -> str:
 
 def create_directory_structure(location: str,
                                directories: List[str],
-                               ) -> List[None]:
+                               ) -> None:
     os.mkdir(location)
-    return [os.mkdir(os.path.join(location, directory))  # type: ignore
-            for directory in
-            directories]
+    for directory in directories:
+        os.mkdir(os.path.join(location, directory))
 
 
 def generate_sge_job_params(pipeline: List[Dict[str, str]],
@@ -53,10 +51,10 @@ def generate_sge_job_params(pipeline: List[Dict[str, str]],
                         golden_binary_path=golden_binary_path,
                         golden_reference_path=golden_reference_path,
                         input_path=input_path,
-                        pipeline=pipeline)  # type: ignore
+                        pipeline=pipeline)
 
 
-def create_param_file(working_directory, params: SgeJobParams) -> None:
+def create_param_file(working_directory: str, params: SgeJobParams) -> None:
     with open(os.path.join(working_directory, 'param_file.json'), 'w') as \
             param_file:
         param_file.writelines(json.dumps(params._asdict(), indent=4))
