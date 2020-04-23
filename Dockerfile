@@ -9,4 +9,4 @@ COPY . .
 RUN python3 setup.py install
 
 EXPOSE 80
-CMD ["gunicorn", "--bind", "0.0.0.0:80", "qassembler.qassembler:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "qassembler.qassembler:app"]
